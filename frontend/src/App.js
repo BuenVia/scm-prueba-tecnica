@@ -7,6 +7,12 @@ function App() {
     username: "",
     password: ""
   })
+  const [formData, setFormData] = useState({
+    field: "",
+    operator: "",
+    value: ""
+  });
+  const [searchResults, setSearchResults] = useState([])
   const [loggedin, setLoggedin] = useState(false)
   const [showError, setShowError] = useState(false)
   const [accessToken, setAccessToken] = useState(null)
@@ -37,7 +43,6 @@ function App() {
 
       const data = await response.json();
 
-      console.log(data);
       setAccessToken(data["access_token"])
       setRefreshToken(data["refresh_token"])
       setLoggedin(true)
@@ -49,6 +54,52 @@ function App() {
   }
   }
 
+  const handleLogout = () => {
+    setLoggedin(false)
+    setSearchResults([])
+    setShowError(false)
+    setAccessToken(null)
+    setRefreshToken(null)
+  }
+
+  const handleSelectChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+     try {
+      const response = await fetch("http://127.0.0.1:8000/items/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `bearer ${accessToken}`
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Search failed");
+      }
+
+      const data = await response.json();
+      setSearchResults(data)
+
+
+      return data;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+  };
+
+  
+
 
   return (
     <div className="App">
@@ -56,6 +107,88 @@ function App() {
       {
         loggedin ?
         <>
+          <div className="card p-4 shadow-sm">
+      <h5 className="card-title mb-4">Items Search</h5>
+
+      <form onSubmit={handleSubmit}>
+        <div className="row g-3 align-items-end">
+          <div className="col-md-4">
+            <label className="form-label">Field</label>
+
+            <select
+              className="form-select"
+              name="field"
+              value={formData.field}
+              onChange={handleSelectChange}
+            >
+              <option value="">Select field</option>
+              <option value="sku">SKU</option>
+              <option value="status">Status</option>
+              <option value="warehouse_id">Warehouse</option>
+            </select>
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">Operator</label>
+
+            <select
+              className="form-select"
+              name="operator"
+              value={formData.operator}
+              onChange={handleSelectChange}
+            >
+              <option value="">Select operator</option>
+              <option value="eq">Equals</option>
+              <option value="neq">Does Not Equal</option>
+              <option value="gt">Greater than</option>
+              <option value="gte">Greater than or equal to</option>
+              <option value="lt">Less than</option>
+              <option value="lte">Less than or equal to</option>
+              <option value="like">Like</option>
+              <option value="in">In</option>
+              <option value="is_null">Is null</option>
+            </select>
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">Value</label>
+
+            <input
+              type="text"
+              className="form-control"
+              name="value"
+              value={formData.value}
+              onChange={handleSelectChange}
+              placeholder="Enter value"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <button type="submit" className="btn btn-primary">
+            Submit Filter
+          </button>
+        </div>
+      </form>
+    </div>
+    {searchResults ? 
+    <div className="card p-4 shadow-sm">
+      {searchResults.map(result => {
+        return(
+          <div key={result["id"]} className='card'>
+            <p>{result["id"]}</p>
+            <p>{result["sku"]}</p>
+            <p>{result["warehouse_id"]}</p>
+          </div>
+        )
+      })}
+    </div>
+    
+    : null}
+
+    <div className='m-3'>
+      <button className='btn btn-primary' onClick={handleLogout}>Logout</button>
+    </div>
         </>
         :
       <>
