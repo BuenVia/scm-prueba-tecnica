@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import './App.css';
+import { useState } from 'react'
+import './App.css'
 
 function App() {
 
@@ -11,7 +11,7 @@ function App() {
     field: "",
     operator: "",
     value: ""
-  });
+  })
   const [searchResults, setSearchResults] = useState([])
   const [loggedin, setLoggedin] = useState(false)
   const [showError, setShowError] = useState(false)
@@ -36,21 +36,21 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(loginDetails),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Login failed");
+        throw new Error("Login failed")
       }
 
-      const data = await response.json();
+      const data = await response.json()
 
       setAccessToken(data["access_token"])
       setRefreshToken(data["refresh_token"])
       setLoggedin(true)
 
-      return data;
+      return data
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error:", error)
     setShowError(true)
   }
   }
@@ -64,16 +64,16 @@ function App() {
   }
 
   const handleSelectChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
      try {
       const payload = {
@@ -93,22 +93,28 @@ function App() {
           "Authorization": `bearer ${accessToken}`
         },
         body: JSON.stringify(payload),
-      });
+      })
 
+      if (response.status === 401) {
+        throw new Error(`${response.statusText} ${response.status}: Logout and login again.`)
+      }
       if (!response.ok) {
-        throw new Error("Search failed");
+        throw new Error("Search failed")
       }
 
-      const data = await response.json();
+      const data = await response.json()
+      if(data.length < 1) {
+        setSearchError("No items returned.")
+      }
       setSearchResults(data)
 
 
-      return data;
+      return data
   } catch (error) {
-    setSearchError("Error in search.")
-    console.error("Error:", error);
+    setSearchError(error.message ,error)
+    console.error("Error:", error)
   }
-  };
+  }
 
   
 
@@ -184,19 +190,24 @@ function App() {
       </form>
     </div>
     {searchResults ? 
-    <div className="card p-4 shadow-sm">
-      {searchResults.map(result => {
-        return(
-          <div key={result["id"]} className='card'>
-            <p>{result["id"]}</p>
-            <p>{result["sku"]}</p>
-            <p>{result["warehouse_id"]}</p>
-            <p>{result["status"]}</p>
-          </div>
-        )
-      })}
+      <div className="card p-4 shadow-sm">
+        {searchResults.map(result => {
+          return(
+              <div key={result["id"]} className='card'>
+                <p>{result["id"]}</p>
+              <p>{result["sku"]}</p>
+              <p>{result["warehouse_id"]}</p>
+              <p>{result["status"]}</p>
+            </div>
+          )
+      }
+      )
+    }
     </div>
     
+    : null}
+    {searchError ? 
+      <p style={{color: "red"}}>{searchError}</p>
     : null}
 
     <div className='m-3'>
@@ -238,7 +249,7 @@ function App() {
 
     </div>
     
-  );
+  )
 }
 
-export default App;
+export default App
