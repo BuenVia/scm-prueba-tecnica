@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,11 +51,24 @@ class TokenPair(BaseModel):
 
 class RefreshRequest(BaseModel):
     refresh_token: str
+    
 
+class FilterCondition(BaseModel):
+    # Control de filtros permitidos
+    field: Literal[
+        "id", "sku", "status", "warehouse_id", "created_at"
+    ]
+
+    operator: Literal[
+        "eq", "neq", "gt", "gte", "lt", "lte", "like", "in", "is_null"
+    ]
+
+    value: str | None = None
 
 class SearchRequest(BaseModel):
-    # TODO (candidato): diseña aquí el contrato de filtros estructurados.
-    filters: str | None = None
+    # Cambio del
+    filters: list[FilterCondition] = Field(default_factory=list)
+    
 
 
 class ItemOut(BaseModel):
