@@ -66,7 +66,7 @@ class FilterCondition(BaseModel):
     value: str | None = None
 
 class SearchRequest(BaseModel):
-    # Cambio del
+    #  Lista de filtros
     filters: list[FilterCondition] = Field(default_factory=list)
     
 
