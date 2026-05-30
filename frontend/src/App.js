@@ -17,6 +17,7 @@ function App() {
   const [showError, setShowError] = useState(false)
   const [accessToken, setAccessToken] = useState(null)
   const [refreshToken, setRefreshToken] = useState(null)
+  const [searchError, setSearchError] = useState(false)
 
 
   const handleLoginForm = (e) => {
@@ -75,13 +76,23 @@ function App() {
     e.preventDefault();
 
      try {
+      const payload = {
+        "filters": [
+          {
+            "field": formData.field,
+            "operator": formData.operator,
+            "value": formData.value
+          }
+        ]
+      }
+
       const response = await fetch("http://127.0.0.1:8000/items/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `bearer ${accessToken}`
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -94,6 +105,7 @@ function App() {
 
       return data;
   } catch (error) {
+    setSearchError("Error in search.")
     console.error("Error:", error);
   }
   };
@@ -179,6 +191,7 @@ function App() {
             <p>{result["id"]}</p>
             <p>{result["sku"]}</p>
             <p>{result["warehouse_id"]}</p>
+            <p>{result["status"]}</p>
           </div>
         )
       })}
